@@ -13,32 +13,44 @@
     </section>
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 sm:gap-16 mb-10">
       <TrendItem
+        color="green"
+        title="Income"
+        :amount="income"
+        :last-amount="0"
+        :loading="isLoading"
+      />
+      <TrendItem
+        color="red"
+        title="Expenses"
+        :amount="expenses"
+        :last-amount="0"
+        :loading="isLoading"
+      />
+      <TrendItem
         color="red"
         title="Income"
         :amount="4000"
-        :last-amount="3000"
+        :last-amount="0"
         :loading="isLoading"
       />
       <TrendItem
         color="green"
         title="Income"
         :amount="4000"
-        :last-amount="3000"
+        :last-amount="0"
         :loading="isLoading"
       />
-      <TrendItem
-        color="red"
-        title="Income"
-        :amount="4000"
-        :last-amount="7000"
-        :loading="isLoading"
-      />
-      <TrendItem
-        color="green"
-        title="Income"
-        :amount="4000"
-        :last-amount="3000"
-        :loading="isLoading"
+    </section>
+    <section class="flex justify-between mb-10">
+      <h2 class="font-bold text-xl">
+        Transactions ({{ transactions.length }})
+      </h2>
+      <UButton
+        icon="i-heroicons-plus-circle"
+        color="white"
+        variant="solid"
+        label="Add"
+        @click="refetchTransactions"
       />
     </section>
     <section v-if="!isLoading">
@@ -77,6 +89,10 @@ const supabase = useSupabaseClient()
 const selectedView = ref(transactionViewOptions[0])
 const transactions = ref<Transaction[]>([])
 const isLoading = ref(false)
+// const isModalOpened = ref(false)
+
+const income = computed(() => transactions.value.filter(transaction => transaction.type === 'Income').reduce((acc, transaction) => acc + transaction.amount, 0))
+const expenses = computed(() => transactions.value.filter(transaction => transaction.type === 'Expense').reduce((acc, transaction) => acc + transaction.amount, 0))
 
 const fetchTransactions = async () => {
   isLoading.value = true
