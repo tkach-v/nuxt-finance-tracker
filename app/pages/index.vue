@@ -41,6 +41,12 @@
         :loading="false"
       />
     </section>
+    <section>
+      <TransactionItem />
+      <TransactionItem />
+      <TransactionItem />
+      <TransactionItem />
+    </section>
   </div>
 </template>
 
