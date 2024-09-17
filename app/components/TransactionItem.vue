@@ -1,10 +1,10 @@
 <template>
-  <div class="grid grid-cols-2 py-4 border-b border-gray-200 dark:border-gray-800 text-900 dark:text-gray-100">
-    <div class="flex items-center justify-between">
+  <div class="grid grid-cols-3 py-4 border-b border-gray-200 dark:border-gray-800 text-900 dark:text-gray-100">
+    <div class="flex items-center justify-between space-x-4 col-span-2">
       <div class="flex items-center space-x-1">
         <UIcon
           :name="iconName"
-          :class="[iconColor]"
+          :class="[iconColor, 'flex-shrink-0']"
         />
         <div>{{ transaction.description }}</div>
       </div>
