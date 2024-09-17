@@ -50,8 +50,9 @@
         color="white"
         variant="solid"
         label="Add"
-        @click="refetchTransactions"
+        @click="isModalOpened = true"
       />
+      <TransactionModal v-model="isModalOpened" />
     </section>
     <section v-if="!isLoading">
       <div
@@ -81,15 +82,15 @@
 </template>
 
 <script setup lang="ts">
-import { type Transaction, transactionViewOptionsEnum } from '~/types'
+import { type Transaction, TransactionViewOption } from '~/types'
 
-const transactionViewOptions = Object.values(transactionViewOptionsEnum)
+const transactionViewOptions = Object.values(TransactionViewOption)
 const supabase = useSupabaseClient()
 
 const selectedView = ref(transactionViewOptions[0])
 const transactions = ref<Transaction[]>([])
 const isLoading = ref(false)
-// const isModalOpened = ref(false)
+const isModalOpened = ref(false)
 
 const income = computed(() => transactions.value.filter(transaction => transaction.type === 'Income').reduce((acc, transaction) => acc + transaction.amount, 0))
 const expenses = computed(() => transactions.value.filter(transaction => transaction.type === 'Expense').reduce((acc, transaction) => acc + transaction.amount, 0))
