@@ -17,33 +17,33 @@
         title="Income"
         :amount="income"
         :last-amount="0"
-        :loading="isLoading"
+        :loading="pending"
       />
       <TrendItem
         color="red"
         title="Expenses"
         :amount="expenses"
         :last-amount="0"
-        :loading="isLoading"
+        :loading="pending"
       />
       <TrendItem
         color="red"
         title="Income"
         :amount="4000"
         :last-amount="0"
-        :loading="isLoading"
+        :loading="pending"
       />
       <TrendItem
         color="green"
         title="Income"
         :amount="4000"
         :last-amount="0"
-        :loading="isLoading"
+        :loading="pending"
       />
     </section>
     <section class="flex justify-between mb-10">
       <h2 class="font-bold text-xl">
-        Transactions ({{ transactions.length }})
+        Transactions ({{ transactions.all.value.length }})
       </h2>
       <UButton
         icon="i-heroicons-plus-circle"
@@ -52,11 +52,14 @@
         label="Add"
         @click="isModalOpened = true"
       />
-      <TransactionModal v-model="isModalOpened" />
+      <TransactionModal
+        v-model="isModalOpened"
+        @saved="refresh"
+      />
     </section>
-    <section v-if="!isLoading">
+    <section v-if="!pending">
       <div
-        v-for="(transactionsOnDay, date) in transactionsGroupedByDate"
+        v-for="(transactionsOnDay, date) in transactions.grouped.byDate.value"
         :key="date"
       >
         <DailyTransactionSummary
@@ -67,7 +70,7 @@
           v-for="transaction in transactionsOnDay"
           :key="transaction.id"
           :transaction="transaction"
-          @deleted="refetchTransactions"
+          @deleted="refresh"
         />
       </div>
     </section>
@@ -82,51 +85,20 @@
 </template>
 
 <script setup lang="ts">
-import { type Transaction, TransactionViewOption } from '~/types'
+import { TransactionViewOption } from '~/types'
 
 const transactionViewOptions = Object.values(TransactionViewOption)
-const supabase = useSupabaseClient()
 
 const selectedView = ref(transactionViewOptions[0])
-const transactions = ref<Transaction[]>([])
-const isLoading = ref(false)
 const isModalOpened = ref(false)
 
-const income = computed(() => transactions.value.filter(transaction => transaction.type === 'Income').reduce((acc, transaction) => acc + transaction.amount, 0))
-const expenses = computed(() => transactions.value.filter(transaction => transaction.type === 'Expense').reduce((acc, transaction) => acc + transaction.amount, 0))
+const {
+  transactions,
+  income,
+  expenses,
+  pending,
+  refresh,
+} = useFetchTransactions()
 
-const fetchTransactions = async () => {
-  isLoading.value = true
-  try {
-    const { data } = await useAsyncData<Transaction[]>('transactions', async () => {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select()
-        .order('created_at', { ascending: false })
-
-      if (error) return []
-      return data
-    })
-
-    return data.value || []
-  }
-  finally {
-    isLoading.value = false
-  }
-}
-
-const refetchTransactions = async () => transactions.value = await fetchTransactions()
-
-await refetchTransactions()
-
-const transactionsGroupedByDate = computed(() => {
-  return transactions.value.reduce((acc, transaction) => {
-    const date = new Date(transaction.created_at).toISOString().split('T')[0] as string
-    if (!acc[date]) {
-      acc[date] = []
-    }
-    acc[date].push(transaction)
-    return acc
-  }, {} as Record<string, Transaction[]>)
-})
+await refresh()
 </script>

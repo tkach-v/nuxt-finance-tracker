@@ -74,6 +74,7 @@
           color="black"
           variant="solid"
           label="Save"
+          :loading="isLoading"
         />
       </UForm>
     </UCard>
@@ -83,7 +84,6 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import { TransactionCategory, TransactionType } from '~/types'
-import type { FormSubmitEvent } from '#ui/types'
 import type { UForm } from '#components'
 
 type Props = {
@@ -91,7 +91,8 @@ type Props = {
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'saved'])
+const supabase = useSupabaseClient()
 
 const defaultSchema = z.object({
   created_at: z.string(),
@@ -118,8 +119,6 @@ const schema = z.intersection(
   defaultSchema,
 )
 
-type Schema = z.output<typeof schema>
-
 const TransactionCategories = Object.values(TransactionCategory)
 const TransactionTypes = Object.values(TransactionType)
 
@@ -141,6 +140,8 @@ const initialState = {
 
 const state = ref<TransactionState>({ ...initialState })
 const form = ref<typeof UForm>()
+const isLoading = ref(false)
+const toast = useToast()
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -150,9 +151,38 @@ const isOpen = computed({
   },
 })
 
-const onSubmit = async (event: FormSubmitEvent<Schema>) => {
-  if (form.value) return
-  console.log(event)
+const onSubmit = async () => {
+  if (form.value?.errors.length) return
+
+  isLoading.value = true
+  try {
+    const { error } = await supabase.from('transactions')
+      .upsert({ ...state.value })
+
+    if (!error) {
+      toast.add({
+        title: 'Transaction saved',
+        icon: 'i-heroicons-check-circle',
+        color: 'green',
+      })
+      isOpen.value = false
+      emit('saved')
+      return
+    }
+    throw error
+  }
+  // eslint-disable-next-line
+  catch (e: any) {
+    toast.add({
+      title: 'Transaction not saved',
+      description: `${e.message}`,
+      icon: 'i-heroicons-exclamation-circle',
+      color: 'red',
+    })
+  }
+  finally {
+    isLoading.value = false
+  }
 }
 
 const resetForm = () => {
