@@ -1,5 +1,4 @@
-// eslint-disable-next-line
-export const useCurrency = (amount: any) => {
+export const useCurrency = (amount: number | Ref<number> | ComputedRef<number>) => {
   const currency = computed(() => {
     return new Intl.NumberFormat('en-In', {
       style: 'currency',

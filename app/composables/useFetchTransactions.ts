@@ -46,7 +46,7 @@ export const useFetchTransactions = (period: Ref<Period> | ComputedRef<Period>) 
 
   const refresh = async () => transactions.value = await fetchTransactions()
 
-  watch(period, refresh, { immediate: true })
+  watch(period, async () => await refresh())
 
   return {
     transactions: {
