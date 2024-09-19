@@ -27,3 +27,8 @@ export type Transaction = {
   description: string
   category: string
 }
+
+export type Period = {
+  to: Date
+  from: Date
+}

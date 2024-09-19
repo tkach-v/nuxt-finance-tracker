@@ -1,6 +1,6 @@
-import type { Transaction } from '~/types'
+import type { Period, Transaction } from '~/types'
 
-export const useFetchTransactions = () => {
+export const useFetchTransactions = (period: Ref<Period> | ComputedRef<Period>) => {
   const supabase = useSupabaseClient()
 
   const transactions = ref<Transaction[]>([])
@@ -15,7 +15,7 @@ export const useFetchTransactions = () => {
       if (!acc[date]) {
         acc[date] = []
       }
-      acc[date].push(transaction)
+      acc[date]?.push(transaction)
       return acc
     }, {} as Record<string, Transaction[]>)
   })
@@ -23,16 +23,20 @@ export const useFetchTransactions = () => {
   const fetchTransactions = async () => {
     pending.value = true
     try {
-      const { data } = await useAsyncData<Transaction[]>('transactions', async () => {
-        const { data, error } = await supabase
-          .from('transactions')
-          .select()
-          .order('created_at', { ascending: false })
+      const { data } = await useAsyncData<Transaction[]>(
+        `transactions-${period.value.from.toDateString()}-${period.value.to.toDateString()}`,
+        async () => {
+          const { data, error } = await supabase
+            .from('transactions')
+            .select()
+            .gte('created_at', period.value.from.toISOString())
+            .lte('created_at', period.value.to.toISOString())
+            .order('created_at', { ascending: false })
 
-        if (error) return []
-        return data
-      })
-
+          if (error) return []
+          return data
+        },
+      )
       return data.value || []
     }
     finally {
@@ -41,6 +45,8 @@ export const useFetchTransactions = () => {
   }
 
   const refresh = async () => transactions.value = await fetchTransactions()
+
+  watch(period, refresh, { immediate: true })
 
   return {
     transactions: {

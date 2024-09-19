@@ -16,14 +16,14 @@
         color="green"
         title="Income"
         :amount="income"
-        :last-amount="0"
+        :last-amount="previousIncome"
         :loading="pending"
       />
       <TrendItem
         color="red"
         title="Expenses"
         :amount="expenses"
-        :last-amount="0"
+        :last-amount="previousExpenses"
         :loading="pending"
       />
       <TrendItem
@@ -86,11 +86,14 @@
 
 <script setup lang="ts">
 import { TransactionViewOption } from '~/types'
+import { useSelectedTimePeriod } from '~/composables/useSelectedTimePeriod'
 
 const transactionViewOptions = Object.values(TransactionViewOption)
 
-const selectedView = ref(transactionViewOptions[0])
+const selectedView = ref(transactionViewOptions[0] as TransactionViewOption)
 const isModalOpened = ref(false)
+
+const { current, previous } = useSelectedTimePeriod(selectedView)
 
 const {
   transactions,
@@ -98,7 +101,13 @@ const {
   expenses,
   pending,
   refresh,
-} = useFetchTransactions()
+} = useFetchTransactions(current)
 
-await refresh()
+const {
+  income: previousIncome,
+  expenses: previousExpenses,
+  refresh: refreshPrevious,
+} = useFetchTransactions(previous)
+
+await Promise.all([refresh(), refreshPrevious()])
 </script>
