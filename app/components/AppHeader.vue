@@ -12,7 +12,7 @@
       :ui="{ item: { disabled: 'cursor-text select-text' }, width: 'w-64' }"
     >
       <UAvatar
-        src="https://avatars.githubusercontent.com/u/739984?v=4"
+        :src="url"
         alt="Avatar"
       />
       <template #account="{}">
@@ -38,6 +38,7 @@
 
 <script setup lang="ts">
 import type { DropdownItem } from '#ui/types'
+import { useAvatarUrl } from '~/composables/useAvatarUrl'
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
@@ -63,4 +64,6 @@ const items: DropdownItem[][] = [
     },
   ],
 ]
+
+const { url } = useAvatarUrl()
 </script>
