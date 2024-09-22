@@ -85,6 +85,7 @@
 import { z } from 'zod'
 import { TransactionCategory, TransactionType } from '~/types'
 import type { UForm } from '#components'
+import { useAppToast } from '~/composables/useAppToast'
 
 type Props = {
   modelValue: boolean
@@ -141,7 +142,7 @@ const initialState = {
 const state = ref<TransactionState>({ ...initialState })
 const form = ref<typeof UForm>()
 const isLoading = ref(false)
-const toast = useToast()
+const { toastSuccess, toastError } = useAppToast()
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -160,11 +161,7 @@ const onSubmit = async () => {
       .upsert({ ...state.value })
 
     if (!error) {
-      toast.add({
-        title: 'Transaction saved',
-        icon: 'i-heroicons-check-circle',
-        color: 'green',
-      })
+      toastSuccess({ title: 'Transaction saved' })
       isOpen.value = false
       emit('saved')
       return
@@ -173,11 +170,9 @@ const onSubmit = async () => {
   }
   // eslint-disable-next-line
   catch (e: any) {
-    toast.add({
+    toastError({
       title: 'Transaction not saved',
       description: `${e.message}`,
-      icon: 'i-heroicons-exclamation-circle',
-      color: 'red',
     })
   }
   finally {

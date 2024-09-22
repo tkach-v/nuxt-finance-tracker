@@ -35,6 +35,7 @@
 <script setup lang="ts">
 import type { DropdownItem } from '#ui/types'
 import type { Transaction } from '~/types'
+import { useAppToast } from '~/composables/useAppToast'
 
 type Props = {
   transaction: Transaction
@@ -50,7 +51,7 @@ const iconName = computed(() => isIncome.value ? 'i-heroicons:arrow-up-right' : 
 const iconColor = computed(() => isIncome.value ? 'text-green-600' : 'text-red-600')
 
 const isLoading = ref(false)
-const toast = useToast()
+const { toastSuccess, toastError } = useAppToast()
 const supabase = useSupabaseClient()
 
 const deleteTransaction = async () => {
@@ -60,19 +61,11 @@ const deleteTransaction = async () => {
     await supabase.from('transactions')
       .delete()
       .eq('id', props.transaction.id)
-    toast.add({
-      title: 'Transaction deleted',
-      icon: 'i-heroicons-check-circle',
-      color: 'green',
-    })
+    toastSuccess({ title: 'Transaction deleted' })
     emit('deleted', props.transaction.id)
   }
   catch (error) {
-    toast.add({
-      title: `Error: ${error}`,
-      icon: 'i-heroicons-exclamation-circle',
-      color: 'red',
-    })
+    toastError({ title: `Error: ${error}` })
   }
   finally {
     isLoading.value = false

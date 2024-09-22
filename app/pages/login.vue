@@ -47,8 +47,9 @@
 
 <script setup lang="ts">
 import { useRedirectIfAuthenticated } from '~/composables/useRedirectIfAuthenticated'
+import { useAppToast } from '~/composables/useAppToast'
 
-const toast = useToast()
+const { toastSuccess } = useAppToast()
 const supabase = useSupabaseClient()
 useRedirectIfAuthenticated()
 
@@ -68,12 +69,7 @@ const onSubmit = async () => {
     })
 
     if (error) {
-      toast.add({
-        title: 'Authentication error',
-        icon: 'i-heroicons:exclamation-circle',
-        color: 'red',
-        description: error.message,
-      })
+      toastSuccess({ title: 'Authentication error' })
     }
     else {
       success.value = true

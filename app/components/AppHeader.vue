@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import type {DropdownItem} from "#ui/types";
+import type { DropdownItem } from '#ui/types'
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
@@ -60,7 +60,7 @@ const items: DropdownItem[][] = [
         await supabase.auth.signOut()
         return navigateTo('/login')
       },
-    }
+    },
   ],
 ]
 </script>
