@@ -2,7 +2,7 @@
   <UModal v-model="isOpen">
     <UCard>
       <template #header>
-        Add Transaction
+        {{ isEditing ? 'Edit' : 'Add' }} Transaction
       </template>
       <UForm
         :ref="form"
@@ -19,6 +19,7 @@
           <USelect
             v-model="state.type"
             :options="TransactionTypes"
+            :disabled="isEditing"
             placeholder="Select the transaction type"
           />
         </UFormGroup>
@@ -83,17 +84,20 @@
 
 <script setup lang="ts">
 import { z } from 'zod'
-import { TransactionCategory, TransactionType } from '~/types'
+import { type Transaction, TransactionCategory, TransactionType } from '~/types'
 import type { UForm } from '#components'
 import { useAppToast } from '~/composables/useAppToast'
 
 type Props = {
   modelValue: boolean
+  transaction?: Transaction
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue', 'saved'])
 const supabase = useSupabaseClient()
+
+const isEditing = computed(() => !!props.transaction)
 
 const defaultSchema = z.object({
   created_at: z.string(),
@@ -131,13 +135,21 @@ type TransactionState = {
   category?: TransactionCategory
 }
 
-const initialState = {
-  type: undefined,
-  amount: 0,
-  created_at: undefined,
-  description: undefined,
-  category: undefined,
-}
+const initialState = isEditing.value
+  ? {
+      type: props.transaction?.type,
+      amount: props.transaction?.amount,
+      created_at: props.transaction?.created_at.split('T')[0],
+      description: props.transaction?.description,
+      category: props.transaction?.category,
+    }
+  : {
+      type: undefined,
+      amount: 0,
+      created_at: undefined,
+      description: undefined,
+      category: undefined,
+    }
 
 const state = ref<TransactionState>({ ...initialState })
 const form = ref<typeof UForm>()
@@ -158,7 +170,10 @@ const onSubmit = async () => {
   isLoading.value = true
   try {
     const { error } = await supabase.from('transactions')
-      .upsert({ ...state.value })
+      .upsert({
+        ...state.value,
+        id: props.transaction?.id,
+      })
 
     if (!error) {
       toastSuccess({ title: 'Transaction saved' })
