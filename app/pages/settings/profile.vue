@@ -64,7 +64,7 @@ const handleSubmit = async () => {
       data.email = state.value.email
     }
 
-    const { error } = await supabase.auth.updateUser(data);
+    const { error } = await supabase.auth.updateUser(data)
     if (error) throw error
 
     toastSuccess({

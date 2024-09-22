@@ -88,9 +88,10 @@
 import { TransactionViewOption } from '~/types'
 import { useSelectedTimePeriod } from '~/composables/useSelectedTimePeriod'
 
+const user = useSupabaseUser()
 const transactionViewOptions = Object.values(TransactionViewOption)
 
-const selectedView = ref(transactionViewOptions[0] as TransactionViewOption)
+const selectedView = ref(user.value?.user_metadata?.transaction_view ?? TransactionViewOption.MONTHLY)
 const isModalOpened = ref(false)
 
 const { current, previous } = useSelectedTimePeriod(selectedView)
